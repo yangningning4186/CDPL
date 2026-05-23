@@ -13,12 +13,14 @@ def load_resolve_writer_period():
     )
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
-    return module.resolve_writer_period
+    return module.resolve_writer_period, module.should_register_writers
 
 
 class WriterPeriodTest(unittest.TestCase):
     def setUp(self):
-        self.resolve_writer_period = load_resolve_writer_period()
+        self.resolve_writer_period, self.should_register_writers = (
+            load_resolve_writer_period()
+        )
 
     def test_uses_default_for_long_runs(self):
         self.assertEqual(self.resolve_writer_period(100), 20)
@@ -28,6 +30,12 @@ class WriterPeriodTest(unittest.TestCase):
 
     def test_never_returns_less_than_one(self):
         self.assertEqual(self.resolve_writer_period(0), 1)
+
+    def test_skips_writers_for_short_smoke_runs(self):
+        self.assertFalse(self.should_register_writers(2))
+
+    def test_keeps_writers_for_long_runs(self):
+        self.assertTrue(self.should_register_writers(100))
 
 
 if __name__ == "__main__":
