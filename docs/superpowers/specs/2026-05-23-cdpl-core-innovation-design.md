@@ -123,6 +123,8 @@ CDPL 第一阶段嵌入当前 `ubteacher` 的 teacher-student 框架：
 
 在当前仓库中，主要接入点是 `ubteacher/engine/trainer.py` 的 `run_step_full_semisup`：teacher 产出 ROI pseudo boxes 后，替换原有统一阈值过滤逻辑；student 计算未标注损失时，将分类监督集合和回归监督集合分开处理。
 
+当前工程落地先采用“直接 UBT 仓库运行”方式：`train_net.py` 根据 `SEMISUPNET.Trainer: "cdpl"` 选择 `ubteacher/engine/cdpl_trainer.py`，`configs/oct_ss_cdpl.yaml` 绑定 OCT 数据集名，`ubteacher/data/datasets/oct_coco.py` 通过环境变量注册服务器上的 OCT COCO 标注和图像目录。服务器实验目录应为 `/data4/ynz/CDPL-src`，而不是额外复制出的框架目录。
+
 ## 8. 损失函数
 
 整体损失：

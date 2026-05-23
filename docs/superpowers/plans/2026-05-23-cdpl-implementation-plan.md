@@ -10,6 +10,32 @@
 
 **当前 UBT 约束：** `ubteacher/engine/trainer.py` 中未标注伪标签的 `loss_rpn_loc_pseudo` 和 `loss_box_reg_pseudo` 默认被乘以 0。CDPL-UBT 第一版不是简单打开所有 pseudo box regression，而是只对 `P_full` 的定位可靠伪标签恢复回归监督，`P_cls` 继续走 classification-only 路径。
 
+**当前直接运行入口：** 第一阶段以当前仓库本体为实验目录，不再依赖服务器上的独立 `OCT_SS-CDPL` 拷贝。服务器侧应直接进入 `/data4/ynz/CDPL-src`，使用 `train_net.py`、`configs/oct_ss_cdpl.yaml` 和 `SEMISUPNET.Trainer: "cdpl"` 启动实验；OCT 数据路径通过 `OCT_SS_TRAIN_JSON`、`OCT_SS_UNLABEL_JSON`、`OCT_SS_TEST_JSON`、`OCT_SS_TRAIN_IMAGE_ROOT`、`OCT_SS_UNLABEL_IMAGE_ROOT`、`OCT_SS_IMAGE_ROOT` 环境变量传入。
+
+最小 smoke 命令：
+
+```bash
+cd /data4/ynz/CDPL-src
+OCT_SS_TRAIN_JSON=/data4/ynz/OCT_SS-main/datasets/annotations/train_labeled.json \
+OCT_SS_UNLABEL_JSON=/data4/ynz/OCT_SS-main/datasets/annotations/train_unlabeled_v3_1.json \
+OCT_SS_TEST_JSON=/data4/ynz/OCT_SS-main/datasets/annotations/test_v3_1.json \
+OCT_SS_TRAIN_IMAGE_ROOT=/data4/ynz/YOLO-SS/data/split_data/images/train \
+OCT_SS_UNLABEL_IMAGE_ROOT=/data4/ynz/YOLO-SS/data/unlabeled_data \
+OCT_SS_IMAGE_ROOT=/data4/ynz/YOLO-SS/data/split_data/images/test \
+CUDA_VISIBLE_DEVICES=0 \
+python train_net.py \
+  --num-gpus 1 \
+  --config-file configs/oct_ss_cdpl.yaml \
+  MODEL.WEIGHTS "" \
+  SOLVER.MAX_ITER 2 \
+  TEST.EVAL_PERIOD 0 \
+  SOLVER.CHECKPOINT_PERIOD 1000 \
+  SOLVER.IMG_PER_BATCH_LABEL 1 \
+  SOLVER.IMG_PER_BATCH_UNLABEL 1 \
+  DATALOADER.NUM_WORKERS 0 \
+  SEMISUPNET.BURN_UP_STEP 0
+```
+
 ---
 
 ## 文件结构

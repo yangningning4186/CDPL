@@ -7,6 +7,7 @@ from detectron2.config import get_cfg
 from detectron2.engine import default_argument_parser, default_setup, launch
 
 from ubteacher import add_ubteacher_config
+from ubteacher.engine.cdpl_trainer import CDPLUBTeacherTrainer
 from ubteacher.engine.trainer import UBTeacherTrainer, BaselineTrainer
 
 # hacky way to register
@@ -35,6 +36,8 @@ def main(args):
     cfg = setup(args)
     if cfg.SEMISUPNET.Trainer == "ubteacher":
         Trainer = UBTeacherTrainer
+    elif cfg.SEMISUPNET.Trainer == "cdpl":
+        Trainer = CDPLUBTeacherTrainer
     elif cfg.SEMISUPNET.Trainer == "baseline":
         Trainer = BaselineTrainer
     else:

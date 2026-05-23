@@ -103,3 +103,9 @@ def load_coco_unlabel_json(
 
 _root = os.getenv("DETECTRON2_DATASETS", "datasets")
 register_coco_unlabel(_root)
+
+# Optional OCT-SS registrations used by the direct CDPL experiment config.
+try:
+    import ubteacher.data.datasets.oct_coco  # noqa: F401
+except Exception as exc:
+    logger.warning("Failed to register OCT-SS datasets: %s", exc)

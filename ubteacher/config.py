@@ -37,6 +37,11 @@ def add_ubteacher_config(cfg):
     _C.SEMISUPNET.UNSUP_LOSS_WEIGHT = 4.0
     _C.SEMISUPNET.SUP_LOSS_WEIGHT = 0.5
     _C.SEMISUPNET.LOSS_WEIGHT_TYPE = "standard"
+    _C.SEMISUPNET.CDPL_ENABLED = False
+    _C.SEMISUPNET.CDPL_TAU_BASE = 0.7
+    _C.SEMISUPNET.CDPL_ALPHA_TAIL = 0.15
+    _C.SEMISUPNET.CDPL_MIN_CLS_THRESHOLD = 0.5
+    _C.SEMISUPNET.DEBUG_PSEUDO_STATS = False
 
     # dataloader
     # supervision level
