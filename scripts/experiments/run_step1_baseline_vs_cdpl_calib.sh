@@ -9,13 +9,15 @@ CONDA_ENV=${CONDA_ENV:-ubt}
 
 NUM_GPUS=${NUM_GPUS:-4}
 CUDA_VISIBLE_DEVICES=${CUDA_VISIBLE_DEVICES:-0,1,2,3}
+MODEL_WEIGHTS=${MODEL_WEIGHTS:-detectron2://ImageNetPretrained/MSRA/R-50.pkl}
 MAX_ITER=${MAX_ITER:-360000}
 BURN_UP_STEP=${BURN_UP_STEP:-90000}
 EVAL_PERIOD=${EVAL_PERIOD:-10000}
 CHECKPOINT_PERIOD=${CHECKPOINT_PERIOD:-10000}
-IMG_PER_BATCH_LABEL=${IMG_PER_BATCH_LABEL:-4}
-IMG_PER_BATCH_UNLABEL=${IMG_PER_BATCH_UNLABEL:-4}
-IMS_PER_BATCH=${IMS_PER_BATCH:-4}
+BASE_LR=${BASE_LR:-0.01}
+IMG_PER_BATCH_LABEL=${IMG_PER_BATCH_LABEL:-8}
+IMG_PER_BATCH_UNLABEL=${IMG_PER_BATCH_UNLABEL:-8}
+IMS_PER_BATCH=${IMS_PER_BATCH:-16}
 NUM_WORKERS=${NUM_WORKERS:-2}
 SEED=${SEED:-0}
 
@@ -70,10 +72,12 @@ PY
     echo "run_root: $RUN_ROOT"
     echo "num_gpus: $NUM_GPUS"
     echo "cuda_visible_devices: $CUDA_VISIBLE_DEVICES"
+    echo "model_weights: $MODEL_WEIGHTS"
     echo "max_iter: $MAX_ITER"
     echo "burn_up_step: $BURN_UP_STEP"
     echo "eval_period: $EVAL_PERIOD"
     echo "checkpoint_period: $CHECKPOINT_PERIOD"
+    echo "base_lr: $BASE_LR"
     echo "img_per_batch_label: $IMG_PER_BATCH_LABEL"
     echo "img_per_batch_unlabel: $IMG_PER_BATCH_UNLABEL"
     echo "seed: $SEED"
@@ -109,9 +113,10 @@ run_one() {
     --num-gpus "$NUM_GPUS"
     --resume
     --config-file configs/oct_ss_cdpl.yaml
-    MODEL.WEIGHTS ""
+    MODEL.WEIGHTS "$MODEL_WEIGHTS"
     OUTPUT_DIR "$run_dir"
     SEED "$SEED"
+    SOLVER.BASE_LR "$BASE_LR"
     SOLVER.MAX_ITER "$MAX_ITER"
     SOLVER.IMS_PER_BATCH "$IMS_PER_BATCH"
     SOLVER.IMG_PER_BATCH_LABEL "$IMG_PER_BATCH_LABEL"
