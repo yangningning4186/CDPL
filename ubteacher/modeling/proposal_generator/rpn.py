@@ -5,6 +5,7 @@ import torch
 from detectron2.structures import ImageList, Instances
 from detectron2.modeling.proposal_generator import RPN
 from detectron2.modeling.proposal_generator.build import PROPOSAL_GENERATOR_REGISTRY
+from detectron2.modeling.sampling import subsample_labels
 
 
 @PROPOSAL_GENERATOR_REGISTRY.register()
@@ -12,6 +13,17 @@ class PseudoLabRPN(RPN):
     """
     Region Proposal Network, introduced by :paper:`Faster R-CNN`.
     """
+
+    def _subsample_labels(self, label):
+        device = label.device
+        label_cpu = label.cpu()
+        pos_idx, neg_idx = subsample_labels(
+            label_cpu, self.batch_size_per_image, self.positive_fraction, 0
+        )
+        label_cpu.fill_(-1)
+        label_cpu.scatter_(0, pos_idx, 1)
+        label_cpu.scatter_(0, neg_idx, 0)
+        return label_cpu.to(device=device, non_blocking=True)
 
     def forward(
         self,
