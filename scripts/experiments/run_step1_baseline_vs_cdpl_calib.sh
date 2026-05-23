@@ -3,6 +3,7 @@ set -euo pipefail
 
 REPO_DIR=${REPO_DIR:-/data4/ynz/CDPL-src}
 RUN_ROOT=${RUN_ROOT:-/data4/ynz/cdpl_runs/step1_baseline_vs_cdpl_calib}
+DOC_PATH=${DOC_PATH:-docs/superpowers/experiments/step1-baseline-vs-cdpl-calibration.md}
 CONDA_SH=${CONDA_SH:-/data4/ynz/anaconda3/etc/profile.d/conda.sh}
 CONDA_ENV=${CONDA_ENV:-ubt}
 
@@ -148,4 +149,4 @@ run_one cdpl_calib_4gpu_seed0 cdpl True
 python scripts/experiments/summarize_step1_results.py \
   --run-root "$RUN_ROOT" \
   --annotations "$OCT_SS_TEST_JSON" \
-  --doc docs/superpowers/experiments/step1-baseline-vs-cdpl-calibration.md
+  --doc "$DOC_PATH"
