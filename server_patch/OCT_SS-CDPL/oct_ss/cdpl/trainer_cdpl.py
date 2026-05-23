@@ -27,6 +27,11 @@ class CDPLTeacherTrainer(UBTeacherTrainer):
         else:
             self.cdpl_class_thresholds = {}
 
+    def _call_after_backward_if_supported(self):
+        after_backward = getattr(super(CDPLTeacherTrainer, self), "after_backward", None)
+        if after_backward is not None:
+            after_backward()
+
     def run_step(self):
         start = time.perf_counter()
         labeled = self._next_batch("label")
@@ -151,7 +156,7 @@ class CDPLTeacherTrainer(UBTeacherTrainer):
 
         total_loss = sum(loss_dict.values())
         total_loss.backward()
-        self.after_backward()
+        self._call_after_backward_if_supported()
 
         self._write_ubt_metrics(loss_dict, data_time, extra_metrics=extra_metrics)
         self.optimizer.step()
