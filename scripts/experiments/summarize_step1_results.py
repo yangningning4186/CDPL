@@ -235,16 +235,19 @@ def main():
     parser.add_argument("--run-root", required=True)
     parser.add_argument("--annotations", required=True)
     parser.add_argument("--doc", required=True)
+    parser.add_argument(
+        "--runs",
+        nargs="+",
+        default=["ubt_baseline_4gpu_seed0", "cdpl_calib_4gpu_seed0"],
+        help="Run directory names under --run-root to summarize.",
+    )
     args = parser.parse_args()
 
     run_root = Path(args.run_root)
     annotations = Path(args.annotations)
     doc_path = Path(args.doc)
 
-    run_dirs = [
-        run_root / "ubt_baseline_4gpu_seed0",
-        run_root / "cdpl_calib_4gpu_seed0",
-    ]
+    run_dirs = [run_root / run_name for run_name in args.runs]
     results = [collect_run(run_dir, annotations) for run_dir in run_dirs]
 
     summary_path = run_root / "summary.json"

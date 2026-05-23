@@ -10,16 +10,18 @@ CONDA_ENV=${CONDA_ENV:-ubt}
 NUM_GPUS=${NUM_GPUS:-4}
 CUDA_VISIBLE_DEVICES=${CUDA_VISIBLE_DEVICES:-0,1,2,3}
 MODEL_WEIGHTS=${MODEL_WEIGHTS:-detectron2://ImageNetPretrained/MSRA/R-50.pkl}
-MAX_ITER=${MAX_ITER:-360000}
-BURN_UP_STEP=${BURN_UP_STEP:-90000}
-EVAL_PERIOD=${EVAL_PERIOD:-10000}
-CHECKPOINT_PERIOD=${CHECKPOINT_PERIOD:-10000}
+MAX_ITER=${MAX_ITER:-36000}
+BURN_UP_STEP=${BURN_UP_STEP:-9000}
+EVAL_PERIOD=${EVAL_PERIOD:-3000}
+CHECKPOINT_PERIOD=${CHECKPOINT_PERIOD:-3000}
 BASE_LR=${BASE_LR:-0.01}
 IMG_PER_BATCH_LABEL=${IMG_PER_BATCH_LABEL:-8}
 IMG_PER_BATCH_UNLABEL=${IMG_PER_BATCH_UNLABEL:-8}
 IMS_PER_BATCH=${IMS_PER_BATCH:-16}
 NUM_WORKERS=${NUM_WORKERS:-2}
 SEED=${SEED:-0}
+BASELINE_RUN_NAME=${BASELINE_RUN_NAME:-ubt_baseline_${NUM_GPUS}gpu_seed${SEED}}
+CDPL_RUN_NAME=${CDPL_RUN_NAME:-cdpl_calib_${NUM_GPUS}gpu_seed${SEED}}
 
 export OCT_SS_TRAIN_JSON=${OCT_SS_TRAIN_JSON:-/data4/ynz/OCT_SS-main/datasets/annotations/train_labeled.json}
 export OCT_SS_UNLABEL_JSON=${OCT_SS_UNLABEL_JSON:-/data4/ynz/OCT_SS-main/datasets/annotations/train_unlabeled_v3_1.json}
@@ -95,6 +97,16 @@ PY
   echo "$COMMIT" > "$run_dir/git_commit.txt"
 }
 
+record_nvidia_smi() {
+  local output_path=$1
+
+  if nvidia-smi -i "$CUDA_VISIBLE_DEVICES" > "$output_path" 2>&1; then
+    return 0
+  fi
+
+  nvidia-smi > "$output_path" 2>&1 || true
+}
+
 run_one() {
   local run_name=$1
   local trainer=$2
@@ -132,12 +144,12 @@ run_one() {
   write_run_metadata "$run_dir" "$run_name" "${cmd[@]}"
 
   echo "[$(date '+%F %T')] Starting $run_name on GPUs $CUDA_VISIBLE_DEVICES"
-  nvidia-smi > "$run_dir/nvidia_smi_start.txt"
+  record_nvidia_smi "$run_dir/nvidia_smi_start.txt"
   set +e
   "${cmd[@]}" 2>&1 | tee "$run_dir/train.log"
   local train_code=${PIPESTATUS[0]}
   set -e
-  nvidia-smi > "$run_dir/nvidia_smi_end.txt" || true
+  record_nvidia_smi "$run_dir/nvidia_smi_end.txt"
   echo "$train_code" > "$run_dir/exit_code.txt"
 
   if [[ "$train_code" -ne 0 ]]; then
@@ -151,10 +163,11 @@ run_one() {
   echo "[$(date '+%F %T')] Completed $run_name"
 }
 
-run_one ubt_baseline_4gpu_seed0 ubteacher False
-run_one cdpl_calib_4gpu_seed0 cdpl True
+run_one "$BASELINE_RUN_NAME" ubteacher False
+run_one "$CDPL_RUN_NAME" cdpl True
 
 python scripts/experiments/summarize_step1_results.py \
   --run-root "$RUN_ROOT" \
   --annotations "$OCT_SS_TEST_JSON" \
-  --doc "$DOC_PATH"
+  --doc "$DOC_PATH" \
+  --runs "$BASELINE_RUN_NAME" "$CDPL_RUN_NAME"
