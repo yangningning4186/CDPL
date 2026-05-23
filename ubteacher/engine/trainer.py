@@ -28,6 +28,7 @@ from ubteacher.data.build import (
 )
 from ubteacher.data.dataset_mapper import DatasetMapperTwoCropSeparate
 from ubteacher.engine.hooks import LossEvalHook
+from ubteacher.engine.writer_period import resolve_writer_period
 from ubteacher.modeling.meta_arch.ts_ensemble import EnsembleTSModel
 from ubteacher.checkpoint.detection_checkpoint import DetectionTSCheckpointer
 from ubteacher.solver.build import build_lr_scheduler
@@ -226,7 +227,12 @@ class BaselineTrainer(DefaultTrainer):
         ret.append(hooks.EvalHook(cfg.TEST.EVAL_PERIOD, test_and_save_results))
 
         if comm.is_main_process():
-            ret.append(hooks.PeriodicWriter(self.build_writers(), period=20))
+            ret.append(
+                hooks.PeriodicWriter(
+                    self.build_writers(),
+                    period=resolve_writer_period(cfg.SOLVER.MAX_ITER),
+                )
+            )
         return ret
 
     def _write_metrics(self, metrics_dict: dict):
@@ -715,5 +721,10 @@ class UBTeacherTrainer(DefaultTrainer):
 
         if comm.is_main_process():
             # run writers in the end, so that evaluation metrics are written
-            ret.append(hooks.PeriodicWriter(self.build_writers(), period=20))
+            ret.append(
+                hooks.PeriodicWriter(
+                    self.build_writers(),
+                    period=resolve_writer_period(cfg.SOLVER.MAX_ITER),
+                )
+            )
         return ret

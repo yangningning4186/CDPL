@@ -33,8 +33,11 @@ python train_net.py \
   SOLVER.IMG_PER_BATCH_LABEL 1 \
   SOLVER.IMG_PER_BATCH_UNLABEL 1 \
   DATALOADER.NUM_WORKERS 0 \
-  SEMISUPNET.BURN_UP_STEP 0
+  DATASETS.TEST "()" \
+  SEMISUPNET.BURN_UP_STEP 10
 ```
+
+说明：这个 smoke 只验证仓库本体入口、配置、数据加载、模型构建和 supervised warm-up 训练链路。不要把 `BURN_UP_STEP` 设为 `0` 来做随机初始化 teacher 的 unsup smoke；UBT/CDPL 的未标注分支应在 warm-up checkpoint 之后验证。
 
 ---
 
