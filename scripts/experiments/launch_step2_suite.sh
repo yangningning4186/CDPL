@@ -9,6 +9,7 @@ BASELINE_GPU=${BASELINE_GPU:-2}
 LATE_GPU=${LATE_GPU:-0}
 CLAMP_GPU=${CLAMP_GPU:-1}
 SUPPLEMENTAL_GPU=${SUPPLEMENTAL_GPU:-3}
+RUN_BASELINE_24K=${RUN_BASELINE_24K:-0}
 RUN_SUPPLEMENTAL_SEED1=${RUN_SUPPLEMENTAL_SEED1:-0}
 
 mkdir -p "$RUN_ROOT"
@@ -61,7 +62,11 @@ launch_one() {
 nvidia-smi --query-gpu=index,name,pci.bus_id,memory.used,utilization.gpu --format=csv,noheader \
   > "$RUN_ROOT/suite_launch_nvidia_smi.txt" 2>&1 || true
 
-launch_one "$BASELINE_GPU" ubt_baseline ubt_baseline_24k_1gpu_seed0 0
+if [[ "$RUN_BASELINE_24K" == "1" ]]; then
+  launch_one "$BASELINE_GPU" ubt_baseline ubt_baseline_24k_1gpu_seed0 0
+else
+  echo "skip ubt_baseline_24k_1gpu_seed0: RUN_BASELINE_24K=0; use existing Step1 UBT baseline periodic checkpoint for comparison"
+fi
 launch_one "$LATE_GPU" late_weak late_weak_1gpu_seed0 0
 launch_one "$CLAMP_GPU" floor_clamp floor_clamp_1gpu_seed0 0
 

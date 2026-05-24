@@ -45,6 +45,7 @@ Step 2 先不进入 localization-aware Full CDPL，而是先回答两个更低�
 
 训练上限统一为 `MAX_ITER=24000`，每 `3000` iter 做一次 test periodic eval 和 checkpoint。
 优先使用空闲 GPU 并行单卡 seeds；如果 NCCL 或 GPU2/GPU3 再次不稳定，正式 seed0 保留在更稳定的 GPU0/GPU1 上，其他 seed 作为补充结果。
+UBT baseline 对照优先复用 Step 1 已有的 seed0 periodic test checkpoint/metrics，包括 iter 23999；如需完全同目录复现实验，可设置 `RUN_BASELINE_24K=1` 额外启动 `ubt_baseline_24k_1gpu_seed0`。
 
 ## 评估口径
 
@@ -56,4 +57,5 @@ Step 2 先不进入 localization-aware Full CDPL，而是先回答两个更低�
 
 - 本地已实现 late/weak、threshold floor/offset clamp 两组配置开关和启动脚本。
 - 本地已实现 Step 1 pseudo-label 诊断脚本和 Step 2 final/best-test 汇总脚本。
+- Step 2 suite 默认只启动两组正式改进实验，避免默认占用曾经出错的 GPU2/GPU3；baseline 24k 重跑为可选项。
 - 等待把最新本地提交同步到服务器后，先重跑诊断 smoke，确认 `F-PED` 等类别阈值映射正确，再启动完整诊断和 24000 iter 实验。
