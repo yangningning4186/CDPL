@@ -136,6 +136,39 @@ chmod +x "$RUN_DIR/launch_command.sh"
   echo "oct_ss_test_json: $OCT_SS_TEST_JSON"
 } > "$RUN_DIR/run_metadata.txt"
 
+cat > "$RUN_DIR/config_overrides.json" <<EOF
+{
+  "run_name": "$RUN_NAME",
+  "run_mode": "$RUN_MODE",
+  "seed": $SEED,
+  "num_gpus": $NUM_GPUS,
+  "cuda_visible_devices": "$CUDA_VISIBLE_DEVICES",
+  "model_weights": "$MODEL_WEIGHTS",
+  "max_iter": $MAX_ITER,
+  "burn_up_step": $BURN_UP_STEP,
+  "eval_period": $EVAL_PERIOD,
+  "checkpoint_period": $CHECKPOINT_PERIOD,
+  "base_lr": $BASE_LR,
+  "ims_per_batch": $IMS_PER_BATCH,
+  "img_per_batch_label": $IMG_PER_BATCH_LABEL,
+  "img_per_batch_unlabel": $IMG_PER_BATCH_UNLABEL,
+  "num_workers": $NUM_WORKERS,
+  "trainer": "$TRAINER",
+  "cdpl_enabled": "$CDPL_ENABLED",
+  "cdpl_alpha_tail": $CDPL_ALPHA_TAIL,
+  "cdpl_min_cls_threshold": $CDPL_MIN_CLS_THRESHOLD,
+  "cdpl_max_threshold_offset": $CDPL_MAX_THRESHOLD_OFFSET,
+  "cdpl_start_iter": $CDPL_START_ITER,
+  "cdpl_ramp_iters": $CDPL_RAMP_ITERS,
+  "oct_ss_train_json": "$OCT_SS_TRAIN_JSON",
+  "oct_ss_unlabel_json": "$OCT_SS_UNLABEL_JSON",
+  "oct_ss_test_json": "$OCT_SS_TEST_JSON",
+  "oct_ss_train_image_root": "$OCT_SS_TRAIN_IMAGE_ROOT",
+  "oct_ss_unlabel_image_root": "$OCT_SS_UNLABEL_IMAGE_ROOT",
+  "oct_ss_image_root": "$OCT_SS_IMAGE_ROOT"
+}
+EOF
+
 nvidia-smi > "$RUN_DIR/nvidia_smi_start.txt" 2>&1 || true
 set +e
 "${cmd[@]}" 2>&1 | tee "$RUN_DIR/train.log"
