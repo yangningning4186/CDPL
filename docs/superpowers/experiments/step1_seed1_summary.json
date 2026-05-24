@@ -1,0 +1,96 @@
+[
+  {
+    "run": "ubt_baseline_1gpu_seed1",
+    "run_dir": "/data4/ynz/cdpl_runs/step1_baseline_vs_cdpl_calib/ubt_baseline_1gpu_seed1",
+    "complete": true,
+    "exit_code": "0",
+    "checkpoint": "/data4/ynz/cdpl_runs/step1_baseline_vs_cdpl_calib/ubt_baseline_1gpu_seed1/model_final.pth",
+    "predictions": "/data4/ynz/cdpl_runs/step1_baseline_vs_cdpl_calib/ubt_baseline_1gpu_seed1/inference/coco_instances_results.json",
+    "metrics_json": "/data4/ynz/cdpl_runs/step1_baseline_vs_cdpl_calib/ubt_baseline_1gpu_seed1/metrics.json",
+    "git_commit": "8dd446c16d055c035d405844b77a1d9c78937548",
+    "metrics": {
+      "mAP": 9.176404845442782,
+      "AP50": 24.21077750580513,
+      "AP75": 5.205103840771648,
+      "AP_small": 4.009442874118525,
+      "AP30": 37.5557666811874
+    },
+    "per_class_ap": {
+      "D-PED": 3.2516890226907567,
+      "D-SHM": 5.141496878007082,
+      "ERM": 11.822748106494368,
+      "F-PED": 4.915644833414361,
+      "IRF": 12.26187997862237,
+      "MH": 9.586871802983485,
+      "RS": 6.361121936819876,
+      "S-PED": 13.65671396824067,
+      "SRF": 15.589477081712081
+    },
+    "per_class_ap30": {
+      "F-PED": 25.877354985439432,
+      "S-PED": 33.408043401482516,
+      "D-PED": 28.61555605342556,
+      "SRF": 53.74692785657478,
+      "IRF": 46.71271322807532,
+      "RS": 19.273207024979953,
+      "MH": 71.28335086255883,
+      "ERM": 39.62934524109797,
+      "D-SHM": 19.45540147705337
+    },
+    "artifacts_exist": {
+      "config": true,
+      "command": true,
+      "log": true,
+      "checkpoint": true,
+      "predictions": true,
+      "git_commit": true
+    }
+  },
+  {
+    "run": "cdpl_calib_1gpu_seed1",
+    "run_dir": "/data4/ynz/cdpl_runs/step1_baseline_vs_cdpl_calib/cdpl_calib_1gpu_seed1",
+    "complete": true,
+    "exit_code": "0",
+    "checkpoint": "/data4/ynz/cdpl_runs/step1_baseline_vs_cdpl_calib/cdpl_calib_1gpu_seed1/model_final.pth",
+    "predictions": "/data4/ynz/cdpl_runs/step1_baseline_vs_cdpl_calib/cdpl_calib_1gpu_seed1/inference/coco_instances_results.json",
+    "metrics_json": "/data4/ynz/cdpl_runs/step1_baseline_vs_cdpl_calib/cdpl_calib_1gpu_seed1/metrics.json",
+    "git_commit": "8dd446c16d055c035d405844b77a1d9c78937548",
+    "metrics": {
+      "mAP": 7.52426344736947,
+      "AP50": 19.59583016926697,
+      "AP75": 4.141271450293474,
+      "AP_small": 2.445750743392985,
+      "AP30": 29.29214824431869
+    },
+    "per_class_ap": {
+      "D-PED": 2.1774330686988925,
+      "D-SHM": 5.006315767018451,
+      "ERM": 12.80596139420142,
+      "F-PED": 3.2398576404091664,
+      "IRF": 10.959044400320442,
+      "MH": 9.602954397718543,
+      "RS": 0.3581300526723046,
+      "S-PED": 10.10638430706144,
+      "SRF": 13.46228999822457
+    },
+    "per_class_ap30": {
+      "F-PED": 14.943563503472914,
+      "S-PED": 25.111961413031054,
+      "D-PED": 15.498130052130914,
+      "SRF": 54.79733061739167,
+      "IRF": 39.368079533726394,
+      "RS": 1.1209901863991922,
+      "MH": 44.3730528052731,
+      "ERM": 47.388684233815134,
+      "D-SHM": 21.027541853628247
+    },
+    "artifacts_exist": {
+      "config": true,
+      "command": true,
+      "log": true,
+      "checkpoint": true,
+      "predictions": true,
+      "git_commit": true
+    }
+  }
+]
