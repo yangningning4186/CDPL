@@ -20,7 +20,10 @@ import ubteacher.data.datasets.builtin  # noqa: F401
 from ubteacher import add_ubteacher_config
 from ubteacher.cdpl.class_calibration import build_contiguous_class_thresholds
 from ubteacher.engine.trainer import UBTeacherTrainer
+from ubteacher.modeling.meta_arch.rcnn import TwoStagePseudoLabGeneralizedRCNN  # noqa: F401
 from ubteacher.modeling.meta_arch.ts_ensemble import EnsembleTSModel
+from ubteacher.modeling.proposal_generator.rpn import PseudoLabRPN  # noqa: F401
+from ubteacher.modeling.roi_heads.roi_heads import StandardROIHeadsPseudoLab  # noqa: F401
 
 
 def percentile_summary(values):
