@@ -14,11 +14,18 @@ def compute_tail_scores(class_counts):
 
 
 def compute_class_thresholds(
-    class_counts, tau_base=0.7, alpha_tail=0.15, min_threshold=0.5
+    class_counts,
+    tau_base=0.7,
+    alpha_tail=0.15,
+    min_threshold=0.5,
+    max_threshold_offset=-1.0,
 ):
     tail_scores = compute_tail_scores(class_counts)
     thresholds = {}
     for category_id, tail_score in tail_scores.items():
-        threshold = float(tau_base) - float(alpha_tail) * float(tail_score)
+        offset = float(alpha_tail) * float(tail_score)
+        if float(max_threshold_offset) >= 0.0:
+            offset = min(offset, float(max_threshold_offset))
+        threshold = float(tau_base) - offset
         thresholds[category_id] = max(float(min_threshold), threshold)
     return thresholds

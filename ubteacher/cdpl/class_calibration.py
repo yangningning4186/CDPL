@@ -25,6 +25,7 @@ def build_contiguous_class_thresholds(cfg):
         tau_base=cfg.SEMISUPNET.CDPL_TAU_BASE,
         alpha_tail=cfg.SEMISUPNET.CDPL_ALPHA_TAIL,
         min_threshold=cfg.SEMISUPNET.CDPL_MIN_CLS_THRESHOLD,
+        max_threshold_offset=cfg.SEMISUPNET.CDPL_MAX_THRESHOLD_OFFSET,
     )
 
     mapping = getattr(metadata, "thing_dataset_id_to_contiguous_id", None) or {}
@@ -36,4 +37,3 @@ def build_contiguous_class_thresholds(cfg):
         for dataset_id, threshold in dataset_thresholds.items()
         if dataset_id in mapping
     }
-

@@ -1,75 +1,79 @@
-# Step 1: UBT Baseline vs CDPL Class Calibration
+# Step 1：UBT Baseline vs CDPL 类校准
 
-This document is generated from server run artifacts under:
+本文档由服务器实验产物自动汇总并人工补充说明，实验根目录为：
 
 `/data4/ynz/cdpl_runs/step1_baseline_vs_cdpl_calib`
 
-Important scope note: this step evaluates the currently implemented CDPL class-calibration stage. It is not Full CDPL with localization-aware loss routing.
+重要范围说明：本步骤只评估当前已经实现的 CDPL 类校准阶段，不是带有定位感知 loss routing 的 Full CDPL。主结果按 test 集 periodic eval 的最高 mAP checkpoint 统计，不使用最终 checkpoint 作为主结果。
 
-## Execution Notes
+## 执行说明
 
-- Formal comparison: `ubt_baseline_1gpu_seed0` vs `cdpl_calib_1gpu_seed0` on commit `8dd446c16d05`.
-- Training limit: `MAX_ITER=36000`, `BURN_UP_STEP=9000`, `EVAL_PERIOD=3000`, `CHECKPOINT_PERIOD=3000`.
-- The requested 4-GPU run was attempted first, but it hung after GPU3 reported `nvidia-smi` `Unknown Error`. Follow-up 3-GPU and 2-GPU NCCL probes failed, so the formal run used the verified single-GPU fallback on GPU0 with batch 8 and `BASE_LR=0.005`.
-- The server rebooted at `2026-05-24 15:01:06 +0800`, killing active CDPL jobs. The formal CDPL run resumed from `model_0017999.pth` with the OCT-SS data environment restored and completed normally at iter 35999.
-- Supplemental repeat `seed1` completed on GPU1 and is recorded in `docs/superpowers/experiments/step1_seed1_summary.md`.
-- Supplemental `seed2` baseline completed, but `cdpl_calib_1gpu_seed2` stopped at iter 259 after GPU2 / PCI `86:00.0` reported `nvidia-smi` `Unknown Error`; it was not restarted to avoid risking the formal outputs after the reboot.
+- 正式对比实验：`ubt_baseline_1gpu_seed0` vs `cdpl_calib_1gpu_seed0`，代码提交为 `8dd446c16d05`。
+- 训练上限：`MAX_ITER=36000`，`BURN_UP_STEP=9000`，`EVAL_PERIOD=3000`，`CHECKPOINT_PERIOD=3000`。
+- 最初按要求尝试了 4 GPU 训练，但 GPU3 报出 `nvidia-smi` `Unknown Error` 后训练挂起。后续 3 GPU 和 2 GPU 的 NCCL 探测也失败，因此正式实验切换到已验证的单卡 fallback：GPU0、batch 8、`BASE_LR=0.005`。
+- 服务器在 `2026-05-24 15:01:06 +0800` 重启，导致当时活跃的 CDPL 任务被杀掉。正式 CDPL run 恢复 OCT-SS 数据环境后，从 `model_0017999.pth` 继续训练，并在 iter 35999 正常完成。
+- 每 3000 iter 的 test 结果记录在各 run 的 `metrics.json`。本表先按 test `bbox/AP` 选择各自最优 checkpoint，再对该 checkpoint 单独跑 eval-only 生成预测文件并补算 AP30。
+- 补充重复实验 `seed1` 已在 GPU1 完成，记录在 `docs/superpowers/experiments/step1_seed1_summary.md`。
+- 补充实验 `seed2` 的 baseline 已完成，但 `cdpl_calib_1gpu_seed2` 在 iter 259 停止；当时 GPU2 / PCI `86:00.0` 报出 `nvidia-smi` `Unknown Error`。为避免重启后再次影响正式结果，seed2 CDPL 没有继续重跑。
 
-## Runs
+## 实验结果
 
-| Run | Commit | Exit | Complete | mAP | AP30 | AP50 | AP75 | AP_small |
-| --- | --- | --- | --- | ---: | ---: | ---: | ---: | ---: |
-| ubt_baseline_1gpu_seed0 | 8dd446c16d05 | 0 | yes | 9.290 | 41.471 | 24.595 | 5.246 | 3.540 |
-| cdpl_calib_1gpu_seed0 | 8dd446c16d05 | 0 | yes | 7.783 | 31.219 | 19.535 | 4.567 | 3.042 |
+| 实验 | 最优 iter | checkpoint | 提交 | mAP | AP30 | AP50 | AP75 | AP_small |
+| --- | ---: | --- | --- | ---: | ---: | ---: | ---: | ---: |
+| ubt_baseline_1gpu_seed0 | 17999 | `model_0017999.pth` | 8dd446c16d05 | 10.254 | 42.300 | 27.513 | 6.521 | 4.451 |
+| cdpl_calib_1gpu_seed0 | 11999 | `model_0011999.pth` | 8dd446c16d05 | 9.205 | 39.521 | 24.864 | 5.107 | 4.886 |
 
-Formal deltas: mAP `-1.506`, AP30 `-10.253`, AP50 `-5.060`, AP75 `-0.679`, AP_small `-0.498`.
+正式对比差值：mAP `-1.048`，AP30 `-2.779`，AP50 `-2.649`，AP75 `-1.414`，AP_small `+0.435`。
 
-## Artifact Check
+## 产物检查
 
 ### ubt_baseline_1gpu_seed0
 
-- config: yes
-- command: yes
-- log: yes
-- checkpoint: yes
-- predictions: yes
-- git_commit: yes
-- run directory: `/data4/ynz/cdpl_runs/step1_baseline_vs_cdpl_calib/ubt_baseline_1gpu_seed0`
+- 配置文件：是
+- 启动命令：是
+- 训练日志：是
+- 最终 checkpoint：是
+- 预测结果：是
+- git commit：是
+- best-test eval 输出：`/data4/ynz/cdpl_runs/step1_baseline_vs_cdpl_calib/best_test_eval/ubt_baseline_1gpu_seed0_iter17999`
+- 实验目录：`/data4/ynz/cdpl_runs/step1_baseline_vs_cdpl_calib/ubt_baseline_1gpu_seed0`
 
 ### cdpl_calib_1gpu_seed0
 
-- config: yes
-- command: yes
-- log: yes
-- checkpoint: yes
-- predictions: yes
-- git_commit: yes
-- run directory: `/data4/ynz/cdpl_runs/step1_baseline_vs_cdpl_calib/cdpl_calib_1gpu_seed0`
+- 配置文件：是
+- 启动命令：是
+- 训练日志：是
+- 最终 checkpoint：是
+- 预测结果：是
+- git commit：是
+- best-test eval 输出：`/data4/ynz/cdpl_runs/step1_baseline_vs_cdpl_calib/best_test_eval/cdpl_calib_1gpu_seed0_iter11999`
+- 实验目录：`/data4/ynz/cdpl_runs/step1_baseline_vs_cdpl_calib/cdpl_calib_1gpu_seed0`
 
-## Per-Class AP
+## 分类别 AP
 
-| Class | ubt_baseline_1gpu_seed0 | cdpl_calib_1gpu_seed0 |
+| 类别 | ubt_baseline_1gpu_seed0 | cdpl_calib_1gpu_seed0 |
 | --- | ---: | ---: |
-| D-PED | 3.863 | 3.055 |
-| D-SHM | 5.600 | 5.983 |
-| ERM | 12.008 | 12.508 |
-| F-PED | 5.097 | 5.037 |
-| IRF | 12.623 | 12.654 |
-| MH | 10.161 | 9.015 |
-| RS | 8.860 | 0.127 |
-| S-PED | 10.988 | 10.310 |
-| SRF | 14.407 | 11.361 |
+| D-PED | 4.554 | 3.861 |
+| D-SHM | 6.134 | 4.166 |
+| ERM | 14.516 | 15.775 |
+| F-PED | 6.532 | 4.528 |
+| IRF | 14.330 | 15.860 |
+| MH | 12.727 | 10.489 |
+| RS | 5.197 | 2.143 |
+| S-PED | 12.378 | 12.117 |
+| SRF | 15.915 | 13.910 |
 
-## Requirement Audit
+## 需求审计
 
-- Formal baseline/CDPL configs, launch commands, logs, final checkpoints, predictions, git commits, exit codes, and completion markers are present.
-- AP30 was recomputed from `inference/coco_instances_results.json` against `/data4/ynz/OCT_SS-main/datasets/annotations/test_v3_1.json`.
-- Formal JSON summary is saved as `docs/superpowers/experiments/step1_seed0_summary.json`; supplemental summaries are saved as `step1_seed1_summary.*` and `step1_seed2_baseline_summary.json`.
-- Hardware fallback, server reboot, GPU2/GPU3 failures, and the incomplete seed2 CDPL run are documented in this file.
+- 正式 baseline/CDPL 的配置文件、启动命令、日志、最终 checkpoint、预测结果、git commit、退出码和完成标记均已存在。
+- best-test checkpoint 已由 `metrics.json` 中 periodic test `bbox/AP` 选择，baseline 为 iter 17999，CDPL 为 iter 11999。
+- AP30 使用 best-test eval 输出中的 `inference/coco_instances_results.json` 和 `/data4/ynz/OCT_SS-main/datasets/annotations/test_v3_1.json` 重新计算。
+- 正式 final-checkpoint JSON 汇总保存为 `docs/superpowers/experiments/step1_seed0_summary.json`；正式 best-test JSON 汇总保存为 `docs/superpowers/experiments/step1_best_test_seed0_summary.json`；补充实验汇总保存为 `step1_seed1_summary.*` 和 `step1_seed2_baseline_summary.json`。
+- 本文件已经记录硬件 fallback、服务器重启、GPU2/GPU3 故障，以及未完成的 seed2 CDPL run。
 
-## Judgment
+## 结论判断
 
-CDPL class calibration changed mAP by -1.506 and AP75 by -0.679.
-This Step 1 result is negative for class calibration alone: mAP, AP30, AP50, AP75, AP_small, and most per-class AP values regress, with the largest visible collapse on `RS`.
+按 test 最优 checkpoint 选择后，CDPL 类校准使 mAP 下降 `1.048`，AP75 下降 `1.414`，AP30 下降 `2.779`；AP_small 小幅上升 `0.435`。
+Step 1 对“只做类校准”的总体结果仍然偏负：主指标 mAP/AP30/AP50/AP75 均低于 baseline，虽然 `IRF`、`ERM` 和 AP_small 有小幅改善，但 `RS`、`MH`、`F-PED` 等类别下降明显。
 
-The next experiment should not treat class calibration as a standalone improvement. Before investing heavily in Full CDPL, inspect pseudo-label retention by class and confidence threshold, then run a tighter ablation: UBT, weak/late class calibration, and Full CDPL with localization-aware routing. Full CDPL is still worth a controlled follow-up only if the localization-aware component explains or reverses this regression.
+后续实验不应该把类校准视为一个独立有效的增益点。继续投入 Full CDPL 前，建议先按类别和置信度阈值检查 pseudo-label 保留情况，再做更紧的消融：UBT、弱化/后置的类校准、以及加入定位感知 routing 的 Full CDPL。只有当定位感知部分能够解释或扭转这次回退时，Full CDPL 才值得继续作为主线推进。

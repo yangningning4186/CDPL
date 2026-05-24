@@ -1,0 +1,82 @@
+[
+  {
+    "run": "ubt_baseline_1gpu_seed0",
+    "selection_metric": "test bbox/AP from periodic EvalHook metrics.json",
+    "best_iteration": 17999,
+    "checkpoint": "/data4/ynz/cdpl_runs/step1_baseline_vs_cdpl_calib/ubt_baseline_1gpu_seed0/model_0017999.pth",
+    "eval_output_dir": "/data4/ynz/cdpl_runs/step1_baseline_vs_cdpl_calib/best_test_eval/ubt_baseline_1gpu_seed0_iter17999",
+    "predictions": "/data4/ynz/cdpl_runs/step1_baseline_vs_cdpl_calib/best_test_eval/ubt_baseline_1gpu_seed0_iter17999/inference/coco_instances_results.json",
+    "annotations": "/data4/ynz/OCT_SS-main/datasets/annotations/test_v3_1.json",
+    "metrics": {
+      "mAP": 10.253701224279759,
+      "AP50": 27.51344753670879,
+      "AP75": 6.521132687016805,
+      "AP_small": 4.4509406964573905,
+      "AP_medium": 15.29782429366696,
+      "AP_large": 10.841669757744613,
+      "AP30": 42.30019379326917
+    },
+    "per_class_ap": {
+      "F-PED": 6.532089512235604,
+      "S-PED": 12.378298748936997,
+      "D-PED": 4.553698201898418,
+      "SRF": 15.915029209561867,
+      "IRF": 14.330348527459225,
+      "RS": 5.1967926740800685,
+      "MH": 12.727338155488196,
+      "ERM": 14.515911786751055,
+      "D-SHM": 6.133804202106403
+    },
+    "per_class_ap30": {
+      "F-PED": 23.472665804540778,
+      "S-PED": 31.573826705415627,
+      "D-PED": 42.60339685491008,
+      "SRF": 57.414406391656435,
+      "IRF": 53.99497470376868,
+      "RS": 22.186455647995153,
+      "MH": 70.65544783438634,
+      "ERM": 50.7603983144307,
+      "D-SHM": 28.040171882318845
+    }
+  },
+  {
+    "run": "cdpl_calib_1gpu_seed0",
+    "selection_metric": "test bbox/AP from periodic EvalHook metrics.json",
+    "best_iteration": 11999,
+    "checkpoint": "/data4/ynz/cdpl_runs/step1_baseline_vs_cdpl_calib/cdpl_calib_1gpu_seed0/model_0011999.pth",
+    "eval_output_dir": "/data4/ynz/cdpl_runs/step1_baseline_vs_cdpl_calib/best_test_eval/cdpl_calib_1gpu_seed0_iter11999",
+    "predictions": "/data4/ynz/cdpl_runs/step1_baseline_vs_cdpl_calib/best_test_eval/cdpl_calib_1gpu_seed0_iter11999/inference/coco_instances_results.json",
+    "annotations": "/data4/ynz/OCT_SS-main/datasets/annotations/test_v3_1.json",
+    "metrics": {
+      "mAP": 9.20538720141952,
+      "AP50": 24.864033026822995,
+      "AP75": 5.107135106550854,
+      "AP_small": 4.886193187302322,
+      "AP_medium": 13.382241652407187,
+      "AP_large": 11.216027050672741,
+      "AP30": 39.52131541848452
+    },
+    "per_class_ap": {
+      "F-PED": 4.528382622498218,
+      "S-PED": 12.116643802508278,
+      "D-PED": 3.8612749870618024,
+      "SRF": 13.91015389955797,
+      "IRF": 15.859690496531636,
+      "RS": 2.142609055056199,
+      "MH": 10.48894608432446,
+      "ERM": 15.774803565533205,
+      "D-SHM": 4.165980299703899
+    },
+    "per_class_ap30": {
+      "F-PED": 21.85708715047816,
+      "S-PED": 28.8369538045329,
+      "D-PED": 39.72390213479595,
+      "SRF": 55.938390053085506,
+      "IRF": 54.55227680047338,
+      "RS": 11.086650424974708,
+      "MH": 62.53795324591754,
+      "ERM": 53.04841193006148,
+      "D-SHM": 28.110213222041075
+    }
+  }
+]
