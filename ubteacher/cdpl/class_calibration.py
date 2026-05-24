@@ -14,6 +14,14 @@ def load_coco_class_counts(json_file):
     return dict(counts)
 
 
+def load_coco_category_mapping(json_file):
+    with open(json_file, "r", encoding="utf-8") as handle:
+        coco = json.load(handle)
+
+    categories = sorted(coco.get("categories", []), key=lambda item: int(item["id"]))
+    return {int(category["id"]): index for index, category in enumerate(categories)}
+
+
 def build_contiguous_class_thresholds(cfg):
     from detectron2.data import MetadataCatalog
 
@@ -29,6 +37,8 @@ def build_contiguous_class_thresholds(cfg):
     )
 
     mapping = getattr(metadata, "thing_dataset_id_to_contiguous_id", None) or {}
+    if not mapping:
+        mapping = load_coco_category_mapping(metadata.json_file)
     if not mapping:
         return dataset_thresholds
 
