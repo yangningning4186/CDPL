@@ -11,9 +11,27 @@ CLAMP_GPU=${CLAMP_GPU:-1}
 SUPPLEMENTAL_GPU=${SUPPLEMENTAL_GPU:-3}
 RUN_BASELINE_24K=${RUN_BASELINE_24K:-0}
 RUN_SUPPLEMENTAL_SEED1=${RUN_SUPPLEMENTAL_SEED1:-0}
+MAX_GPU_USED_MIB=${MAX_GPU_USED_MIB:-1024}
+ALLOW_BUSY_GPU=${ALLOW_BUSY_GPU:-0}
 
 mkdir -p "$RUN_ROOT"
 cd "$REPO_DIR"
+
+require_available_gpu() {
+  local gpu="$1"
+  local run_name="$2"
+  local used_mib
+
+  if [[ "$ALLOW_BUSY_GPU" == "1" ]]; then
+    return 0
+  fi
+
+  used_mib=$(nvidia-smi -i "$gpu" --query-gpu=memory.used --format=csv,noheader,nounits | tr -d ' ')
+  if (( used_mib > MAX_GPU_USED_MIB )); then
+    echo "refuse launch $run_name: GPU $gpu already uses ${used_mib} MiB (limit ${MAX_GPU_USED_MIB}); set ALLOW_BUSY_GPU=1 to override" >&2
+    return 1
+  fi
+}
 
 launch_one() {
   local gpu="$1"
@@ -37,6 +55,7 @@ launch_one() {
     fi
   fi
 
+  require_available_gpu "$gpu" "$name"
   echo "launch $name on GPU $gpu"
   nohup env \
     CUDA_VISIBLE_DEVICES="$gpu" \

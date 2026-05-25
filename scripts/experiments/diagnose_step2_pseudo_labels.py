@@ -137,11 +137,14 @@ def add_instances(class_records, instances, image_height, image_width, ubt_thres
 
 def finalize_records(class_records, class_names, cdpl_thresholds, ubt_threshold):
     output = {}
-    for cls in sorted(class_records):
+    all_classes = set(class_records) | set(class_names) | set(cdpl_thresholds)
+    for cls in sorted(all_classes):
         record = class_records[cls]
         teacher_boxes = record["teacher_boxes"]
         cdpl_kept = record["cdpl_kept"]
         ubt_kept = record["ubt_kept"]
+        ubt_dropped = teacher_boxes - ubt_kept
+        cdpl_dropped = teacher_boxes - cdpl_kept
         output[class_names.get(cls, str(cls))] = {
             "class_id": cls,
             "thresholds": {
@@ -151,12 +154,13 @@ def finalize_records(class_records, class_names, cdpl_thresholds, ubt_threshold)
             "teacher_boxes": teacher_boxes,
             "ubt_kept": ubt_kept,
             "cdpl_kept": cdpl_kept,
+            "ubt_dropped": ubt_dropped,
+            "cdpl_dropped": cdpl_dropped,
             "cdpl_minus_ubt": cdpl_kept - ubt_kept,
             "ubt_keep_ratio": (ubt_kept / teacher_boxes if teacher_boxes else None),
+            "ubt_drop_ratio": (ubt_dropped / teacher_boxes if teacher_boxes else None),
             "cdpl_keep_ratio": (cdpl_kept / teacher_boxes if teacher_boxes else None),
-            "cdpl_drop_ratio": (
-                (teacher_boxes - cdpl_kept) / teacher_boxes if teacher_boxes else None
-            ),
+            "cdpl_drop_ratio": (cdpl_dropped / teacher_boxes if teacher_boxes else None),
             "score_distribution": percentile_summary(record["scores"]),
             "ubt_kept_score_distribution": percentile_summary(record["ubt_scores"]),
             "cdpl_kept_score_distribution": percentile_summary(record["cdpl_scores"]),
