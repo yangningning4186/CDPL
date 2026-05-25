@@ -415,6 +415,80 @@ def collect_run(repo_dir, run_root, run_name, annotations, config_file, args):
     return result
 
 
+def collect_baseline_reference(run_root, annotations):
+    ref_root = Path(run_root) / "baseline_reference"
+    metadata = load_json(ref_root / "reference_metadata.json", default={}) or {}
+    if not ref_root.exists():
+        return None
+
+    checkpoints = {
+        "final": {
+            "checkpoint": metadata.get("final_checkpoint"),
+            "eval_dir": str(ref_root / "ubt_baseline_seed0_24k_final_iter23999"),
+            "iteration": 23999,
+        },
+        "best_test": {
+            "checkpoint": metadata.get("best_test_checkpoint"),
+            "eval_dir": str(ref_root / "ubt_baseline_seed0_24k_best_iter17999"),
+            "iteration": 17999,
+        },
+    }
+    evals = {}
+    for label, info in checkpoints.items():
+        predictions = Path(info["eval_dir"]) / "inference" / "coco_instances_results.json"
+        eval_result = {
+            "checkpoint": info.get("checkpoint"),
+            "checkpoint_exists": Path(info["checkpoint"]).exists()
+            if info.get("checkpoint")
+            else False,
+            "eval_dir": info["eval_dir"],
+            "iteration": info["iteration"],
+            "predictions": str(predictions),
+            "ran_eval": False,
+            "exit_code": 0 if predictions.exists() else None,
+        }
+        metrics = compute_coco_metrics(annotations, predictions)
+        if metrics:
+            eval_result.update(metrics)
+        evals[label] = eval_result
+
+    return {
+        "run": "ubt_baseline_step1_reference_24k_seed0",
+        "run_dir": str(ref_root),
+        "complete": all(
+            (Path(info["eval_dir"]) / "inference" / "coco_instances_results.json").exists()
+            for info in checkpoints.values()
+        ),
+        "exit_code": None,
+        "git_commit": metadata.get("source_git_commit"),
+        "config_overrides": metadata,
+        "artifacts_exist": {
+            "baseline_reference_metadata": (ref_root / "reference_metadata.json").exists(),
+            "final_predictions": (
+                ref_root
+                / "ubt_baseline_seed0_24k_final_iter23999"
+                / "inference"
+                / "coco_instances_results.json"
+            ).exists(),
+            "best_test_predictions": (
+                ref_root
+                / "ubt_baseline_seed0_24k_best_iter17999"
+                / "inference"
+                / "coco_instances_results.json"
+            ).exists(),
+        },
+        "best_periodic": {
+            "iteration": 17999,
+            "checkpoint": metadata.get("best_test_checkpoint"),
+            "checkpoint_exists": Path(metadata.get("best_test_checkpoint", "")).exists()
+            if metadata.get("best_test_checkpoint")
+            else False,
+            "selection": metadata.get("best_test_selection"),
+        },
+        "evals": evals,
+    }
+
+
 def format_value(value):
     if value is None:
         return "NA"
@@ -551,6 +625,18 @@ def main():
     parser.add_argument("--force-diagnostics", action="store_true")
     parser.add_argument("--diagnose-limit", type=int, default=0)
     parser.add_argument("--eval-cuda-visible-devices", default="0")
+    parser.add_argument(
+        "--include-baseline-reference",
+        dest="include_baseline_reference",
+        action="store_true",
+        default=True,
+        help="Include Step1 UBT baseline reference evals saved under run_root/baseline_reference.",
+    )
+    parser.add_argument(
+        "--no-include-baseline-reference",
+        dest="include_baseline_reference",
+        action="store_false",
+    )
     args = parser.parse_args()
 
     repo_dir = Path(__file__).resolve().parents[2]
@@ -561,6 +647,10 @@ def main():
         collect_run(repo_dir, run_root, run_name, annotations, args.config_file, args)
         for run_name in run_names
     ]
+    if args.include_baseline_reference:
+        baseline_reference = collect_baseline_reference(run_root, annotations)
+        if baseline_reference:
+            results.insert(0, baseline_reference)
 
     summary_json = Path(args.summary_json) if args.summary_json else run_root / "step2_eval_summary.json"
     summary_json.parent.mkdir(parents=True, exist_ok=True)
