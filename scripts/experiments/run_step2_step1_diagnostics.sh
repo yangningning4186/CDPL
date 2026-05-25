@@ -8,6 +8,7 @@ CONDA_SH=${CONDA_SH:-/data4/ynz/anaconda3/etc/profile.d/conda.sh}
 CONDA_ENV=${CONDA_ENV:-ubt}
 CUDA_VISIBLE_DEVICES=${CUDA_VISIBLE_DEVICES:-0}
 DIAG_LIMIT=${DIAG_LIMIT:-0}
+DIAG_GPUS=${DIAG_GPUS:-}
 
 export OCT_SS_TRAIN_JSON=${OCT_SS_TRAIN_JSON:-/data4/ynz/OCT_SS-main/datasets/annotations/train_labeled.json}
 export OCT_SS_UNLABEL_JSON=${OCT_SS_UNLABEL_JSON:-/data4/ynz/OCT_SS-main/datasets/annotations/train_unlabeled_v3_1.json}
@@ -29,6 +30,7 @@ export OUT_DIR
 run_diag() {
   local name="$1"
   local checkpoint="$2"
+  local gpu="$3"
   local output="$OUT_DIR/${name}.json"
   local log="$OUT_DIR/${name}.log"
 
@@ -50,27 +52,53 @@ run_diag() {
     SEMISUPNET.CDPL_MAX_THRESHOLD_OFFSET -1.0
   )
 
-  printf '%q ' "${cmd[@]}" > "$OUT_DIR/${name}.command.sh"
+  printf 'CUDA_VISIBLE_DEVICES=%q ' "$gpu" > "$OUT_DIR/${name}.command.sh"
+  printf '%q ' "${cmd[@]}" >> "$OUT_DIR/${name}.command.sh"
   printf '\n' >> "$OUT_DIR/${name}.command.sh"
   chmod +x "$OUT_DIR/${name}.command.sh"
-  "${cmd[@]}" 2>&1 | tee "$log"
+  CUDA_VISIBLE_DEVICES="$gpu" "${cmd[@]}" 2>&1 | tee "$log"
 }
 
-run_diag \
-  step1_ubt_baseline_seed0_best_iter17999 \
-  "$STEP1_ROOT/ubt_baseline_1gpu_seed0/model_0017999.pth"
+if [[ -n "$DIAG_GPUS" ]]; then
+  IFS=',' read -r -a gpu_list <<< "$DIAG_GPUS"
+  if (( ${#gpu_list[@]} < 4 )); then
+    echo "DIAG_GPUS must provide four comma-separated GPUs for parallel diagnostics" >&2
+    exit 2
+  fi
 
-run_diag \
-  step1_cdpl_calib_seed0_best_iter11999 \
-  "$STEP1_ROOT/cdpl_calib_1gpu_seed0/model_0011999.pth"
+  run_diag step1_ubt_baseline_seed0_best_iter17999 \
+    "$STEP1_ROOT/ubt_baseline_1gpu_seed0/model_0017999.pth" "${gpu_list[0]}" &
+  pids=("$!")
+  run_diag step1_cdpl_calib_seed0_best_iter11999 \
+    "$STEP1_ROOT/cdpl_calib_1gpu_seed0/model_0011999.pth" "${gpu_list[1]}" &
+  pids+=("$!")
+  run_diag step1_ubt_baseline_seed1_best_iter20999 \
+    "$STEP1_ROOT/ubt_baseline_1gpu_seed1/model_0020999.pth" "${gpu_list[2]}" &
+  pids+=("$!")
+  run_diag step1_cdpl_calib_seed1_best_iter11999 \
+    "$STEP1_ROOT/cdpl_calib_1gpu_seed1/model_0011999.pth" "${gpu_list[3]}" &
+  pids+=("$!")
 
-run_diag \
-  step1_ubt_baseline_seed1_best_iter20999 \
-  "$STEP1_ROOT/ubt_baseline_1gpu_seed1/model_0020999.pth"
-
-run_diag \
-  step1_cdpl_calib_seed1_best_iter11999 \
-  "$STEP1_ROOT/cdpl_calib_1gpu_seed1/model_0011999.pth"
+  status=0
+  for pid in "${pids[@]}"; do
+    if ! wait "$pid"; then
+      status=1
+    fi
+  done
+  if (( status != 0 )); then
+    echo "At least one Step1 diagnostic job failed" >&2
+    exit "$status"
+  fi
+else
+  run_diag step1_ubt_baseline_seed0_best_iter17999 \
+    "$STEP1_ROOT/ubt_baseline_1gpu_seed0/model_0017999.pth" "$CUDA_VISIBLE_DEVICES"
+  run_diag step1_cdpl_calib_seed0_best_iter11999 \
+    "$STEP1_ROOT/cdpl_calib_1gpu_seed0/model_0011999.pth" "$CUDA_VISIBLE_DEVICES"
+  run_diag step1_ubt_baseline_seed1_best_iter20999 \
+    "$STEP1_ROOT/ubt_baseline_1gpu_seed1/model_0020999.pth" "$CUDA_VISIBLE_DEVICES"
+  run_diag step1_cdpl_calib_seed1_best_iter11999 \
+    "$STEP1_ROOT/cdpl_calib_1gpu_seed1/model_0011999.pth" "$CUDA_VISIBLE_DEVICES"
+fi
 
 python - <<'PY' > "$OUT_DIR/step1_pseudo_label_diagnostics_manifest.json"
 import json
