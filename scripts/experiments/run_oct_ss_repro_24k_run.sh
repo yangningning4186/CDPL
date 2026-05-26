@@ -2,7 +2,7 @@
 set -euo pipefail
 
 REPO_DIR=${REPO_DIR:-/data2/ynz/CDPL-src}
-RUN_ROOT=${RUN_ROOT:-/data2/ynz/cdpl_runs/oct_ss_small_cutout_ubt_vs_cdpl_24k}
+RUN_ROOT=${RUN_ROOT:-/data2/ynz/cdpl_runs/step2_cdpl_diagnostics_and_weak_calib/oct_ss_small_cutout_ubt_vs_cdpl_24k}
 CONDA_SH=${CONDA_SH:-/data2/ynz/anaconda3/etc/profile.d/conda.sh}
 CONDA_ENV=${CONDA_ENV:-oct_ss}
 CONFIG_FILE=${CONFIG_FILE:-configs/oct_ss_ubt_repro.yaml}

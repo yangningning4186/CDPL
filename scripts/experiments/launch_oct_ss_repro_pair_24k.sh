@@ -2,7 +2,7 @@
 set -euo pipefail
 
 REPO_DIR=${REPO_DIR:-/data2/ynz/CDPL-src}
-RUN_ROOT=${RUN_ROOT:-/data2/ynz/cdpl_runs/oct_ss_small_cutout_ubt_vs_cdpl_24k}
+RUN_ROOT=${RUN_ROOT:-/data2/ynz/cdpl_runs/step2_cdpl_diagnostics_and_weak_calib/oct_ss_small_cutout_ubt_vs_cdpl_24k}
 MAX_ITER=${MAX_ITER:-24000}
 BASELINE_GPU=${BASELINE_GPU:-1}
 CDPL_GPU=${CDPL_GPU:-2}
