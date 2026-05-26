@@ -20,6 +20,15 @@ def add_ubteacher_config(cfg):
     _C.DATASETS.TRAIN_LABEL = ("coco_2017_train",)
     _C.DATASETS.TRAIN_UNLABEL = ("coco_2017_train",)
     _C.DATASETS.CROSS_DATASET = False
+    # Strong-view cutout. Defaults preserve the original UBT augmentation;
+    # OCT-SS reproduction configs override these with small lesion-safe masks.
+    _C.DATASETS.Cutout = True
+    _C.DATASETS.Cutout_p = (0.7, 0.5, 0.3)
+    _C.DATASETS.Cutout_scale_l = (0.05, 0.02, 0.02)
+    _C.DATASETS.Cutout_scale_r = (0.2, 0.2, 0.2)
+    _C.DATASETS.Cutout_ratio_l = (0.3, 0.1, 0.05)
+    _C.DATASETS.Cutout_ratio_r = (3.3, 6, 8)
+    _C.DATASETS.Cutout_value = ("random", "random", "random")
     _C.TEST.EVALUATOR = "COCOeval"
 
     _C.SEMISUPNET = CN()

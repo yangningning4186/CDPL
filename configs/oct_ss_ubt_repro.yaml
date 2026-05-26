@@ -1,0 +1,57 @@
+_BASE_: "./Base-RCNN-FPN.yaml"
+MODEL:
+  META_ARCHITECTURE: "TwoStagePseudoLabGeneralizedRCNN"
+  WEIGHTS: "detectron2://ImageNetPretrained/MSRA/R-50.pkl"
+  MASK_ON: False
+  RESNETS:
+    DEPTH: 50
+  PROPOSAL_GENERATOR:
+    NAME: "PseudoLabRPN"
+  RPN:
+    POSITIVE_FRACTION: 0.25
+  ROI_HEADS:
+    NAME: "StandardROIHeadsPseudoLab"
+    LOSS: "FocalLoss"
+    NUM_CLASSES: 9
+SOLVER:
+  LR_SCHEDULER_NAME: "WarmupMultiStepLR"
+  STEPS: (3000, 6000, 10000)
+  FACTOR_LIST: (0.5, 1, 1, 1, 1)
+  MAX_ITER: 360000
+  IMG_PER_BATCH_LABEL: 4
+  IMG_PER_BATCH_UNLABEL: 4
+  BASE_LR: 0.01
+  WARMUP_ITERS: 1000
+  GAMMA: 0.5
+  CHECKPOINT_PERIOD: 500
+DATALOADER:
+  SUP_PERCENT: 100
+DATASETS:
+  CROSS_DATASET: True
+  TRAIN_LABEL: ("oct_ss_train",)
+  TRAIN_UNLABEL: ("oct_ss_train_unlabel",)
+  TEST: ("oct_ss_test",)
+  Cutout: True
+  Cutout_p: (0.7, 0.5, 0.3)
+  Cutout_scale_l: (0.005, 0.002, 0.002)
+  Cutout_scale_r: (0.01, 0.01, 0.01)
+  Cutout_ratio_l: (0.3, 0.1, 0.05)
+  Cutout_ratio_r: (3.3, 6, 8)
+  Cutout_value: ("random", "random", "random")
+SEMISUPNET:
+  Trainer: "ubteacher"
+  CDPL_ENABLED: False
+  BBOX_THRESHOLD: 0.5
+  CDPL_TAU_BASE: 0.5
+  CDPL_ALPHA_TAIL: 0.15
+  CDPL_MIN_CLS_THRESHOLD: 0.35
+  CDPL_MAX_THRESHOLD_OFFSET: -1.0
+  CDPL_START_ITER: -1
+  CDPL_RAMP_ITERS: 0
+  DEBUG_PSEUDO_STATS: True
+  TEACHER_UPDATE_ITER: 1
+  BURN_UP_STEP: 5000
+  EMA_KEEP_RATE: 0.9996
+  UNSUP_LOSS_WEIGHT: 2.0
+TEST:
+  EVAL_PERIOD: 500

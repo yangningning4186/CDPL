@@ -6,6 +6,37 @@ from ubteacher.data.transforms.augmentation_impl import (
 )
 
 
+def _build_cutout_augmentation(cfg):
+    if not cfg.DATASETS.Cutout:
+        return None
+
+    parameters = (
+        cfg.DATASETS.Cutout_p,
+        cfg.DATASETS.Cutout_scale_l,
+        cfg.DATASETS.Cutout_scale_r,
+        cfg.DATASETS.Cutout_ratio_l,
+        cfg.DATASETS.Cutout_ratio_r,
+        cfg.DATASETS.Cutout_value,
+    )
+    parameter_lengths = {len(values) for values in parameters}
+    if len(parameter_lengths) != 1:
+        raise ValueError("All DATASETS.Cutout_* sequences must have the same length")
+
+    specs = zip(*parameters)
+    cutout = [transforms.ToTensor()]
+    for probability, scale_l, scale_r, ratio_l, ratio_r, value in specs:
+        cutout.append(
+            transforms.RandomErasing(
+                p=probability,
+                scale=(scale_l, scale_r),
+                ratio=(ratio_l, ratio_r),
+                value=value,
+            )
+        )
+    cutout.append(transforms.ToPILImage())
+    return transforms.Compose(cutout)
+
+
 def build_strong_augmentation(cfg, is_train):
     """
     Create a list of :class:`Augmentation` from config.
@@ -25,22 +56,9 @@ def build_strong_augmentation(cfg, is_train):
         augmentation.append(transforms.RandomGrayscale(p=0.2))
         augmentation.append(transforms.RandomApply([GaussianBlur([0.1, 2.0])], p=0.5))
 
-        randcrop_transform = transforms.Compose(
-            [
-                transforms.ToTensor(),
-                transforms.RandomErasing(
-                    p=0.7, scale=(0.05, 0.2), ratio=(0.3, 3.3), value="random"
-                ),
-                transforms.RandomErasing(
-                    p=0.5, scale=(0.02, 0.2), ratio=(0.1, 6), value="random"
-                ),
-                transforms.RandomErasing(
-                    p=0.3, scale=(0.02, 0.2), ratio=(0.05, 8), value="random"
-                ),
-                transforms.ToPILImage(),
-            ]
-        )
-        augmentation.append(randcrop_transform)
+        cutout_augmentation = _build_cutout_augmentation(cfg)
+        if cutout_augmentation is not None:
+            augmentation.append(cutout_augmentation)
 
         logger.info("Augmentations used in training: " + str(augmentation))
     return transforms.Compose(augmentation)
