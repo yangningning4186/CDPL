@@ -174,6 +174,17 @@ def finalize_records(class_records, class_names, cdpl_thresholds, ubt_threshold)
     return output
 
 
+def apply_cdpl_ramp(cdpl_thresholds, ubt_threshold, ramp_factor):
+    ramp_factor = min(1.0, max(0.0, float(ramp_factor)))
+    if ramp_factor >= 1.0:
+        return {int(cls): float(threshold) for cls, threshold in cdpl_thresholds.items()}
+    return {
+        int(cls): float(ubt_threshold)
+        - (float(ubt_threshold) - float(threshold)) * ramp_factor
+        for cls, threshold in cdpl_thresholds.items()
+    }
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--config-file", required=True)
@@ -182,6 +193,15 @@ def main():
     parser.add_argument("--dataset", default="oct_ss_train_unlabel")
     parser.add_argument("--raw-score-threshold", type=float, default=0.05)
     parser.add_argument("--ubt-threshold", type=float, default=0.5)
+    parser.add_argument(
+        "--cdpl-ramp-factor",
+        type=float,
+        default=1.0,
+        help=(
+            "Apply the trainer's active ramp to CDPL thresholds. Use 0 before "
+            "CDPL_START_ITER, values in (0, 1) during ramp, and 1 after ramp."
+        ),
+    )
     parser.add_argument("--limit", type=int, default=0)
     parser.add_argument("--focus-classes", nargs="*", default=["RS", "F-PED", "MH"])
     parser.add_argument("opts", nargs=argparse.REMAINDER)
@@ -196,7 +216,12 @@ def main():
     loader = UBTeacherTrainer.build_test_loader(cfg, args.dataset)
     metadata = MetadataCatalog.get(args.dataset)
     class_names = {idx: name for idx, name in enumerate(getattr(metadata, "thing_classes", []))}
-    cdpl_thresholds = build_contiguous_class_thresholds(cfg)
+    target_cdpl_thresholds = build_contiguous_class_thresholds(cfg)
+    cdpl_thresholds = apply_cdpl_ramp(
+        target_cdpl_thresholds,
+        args.ubt_threshold,
+        args.cdpl_ramp_factor,
+    )
 
     class_records = defaultdict(empty_class_record)
     num_images = 0
@@ -240,6 +265,11 @@ def main():
         "num_images": num_images,
         "raw_score_threshold": args.raw_score_threshold,
         "ubt_threshold": args.ubt_threshold,
+        "cdpl_ramp_factor": args.cdpl_ramp_factor,
+        "target_cdpl_thresholds": {
+            class_names.get(int(cls), str(cls)): float(value)
+            for cls, value in sorted(target_cdpl_thresholds.items())
+        },
         "cdpl_thresholds": {
             class_names.get(int(cls), str(cls)): float(value)
             for cls, value in sorted(cdpl_thresholds.items())

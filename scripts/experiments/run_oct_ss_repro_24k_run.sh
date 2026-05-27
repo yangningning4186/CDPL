@@ -22,6 +22,7 @@ export OCT_SS_UNLABEL_IMAGE_ROOT=${OCT_SS_UNLABEL_IMAGE_ROOT:-/data2/ynz/OCT_SS/
 export OCT_SS_IMAGE_ROOT=${OCT_SS_IMAGE_ROOT:-/data2/ynz/OCT_SS/datasets/images}
 export CUDA_VISIBLE_DEVICES
 export OMP_NUM_THREADS=${OMP_NUM_THREADS:-1}
+export RUN_MODE SEED NUM_GPUS MAX_ITER RUN_NAME
 
 case "$RUN_MODE" in
   ubt_repro)
@@ -32,8 +33,12 @@ case "$RUN_MODE" in
     TRAINER=cdpl
     CDPL_ENABLED=True
     ;;
+  cdpl_sweep|cdpl_delayed_weak)
+    TRAINER=cdpl
+    CDPL_ENABLED=True
+    ;;
   *)
-    echo "Unknown RUN_MODE=$RUN_MODE; expected ubt_repro or cdpl_calib_repro" >&2
+    echo "Unknown RUN_MODE=$RUN_MODE; expected ubt_repro, cdpl_calib_repro, cdpl_sweep, or cdpl_delayed_weak" >&2
     exit 2
     ;;
 esac
@@ -64,6 +69,24 @@ cmd=(
   SEMISUPNET.CDPL_ENABLED "$CDPL_ENABLED"
 )
 
+append_cfg_override_if_set() {
+  local env_name="$1"
+  local cfg_key="$2"
+  local value="${!env_name:-}"
+  if [[ -n "$value" ]]; then
+    cmd+=("$cfg_key" "$value")
+  fi
+}
+
+append_cfg_override_if_set BBOX_THRESHOLD SEMISUPNET.BBOX_THRESHOLD
+append_cfg_override_if_set BURN_UP_STEP SEMISUPNET.BURN_UP_STEP
+append_cfg_override_if_set CDPL_TAU_BASE SEMISUPNET.CDPL_TAU_BASE
+append_cfg_override_if_set CDPL_ALPHA_TAIL SEMISUPNET.CDPL_ALPHA_TAIL
+append_cfg_override_if_set CDPL_MIN_CLS_THRESHOLD SEMISUPNET.CDPL_MIN_CLS_THRESHOLD
+append_cfg_override_if_set CDPL_MAX_THRESHOLD_OFFSET SEMISUPNET.CDPL_MAX_THRESHOLD_OFFSET
+append_cfg_override_if_set CDPL_START_ITER SEMISUPNET.CDPL_START_ITER
+append_cfg_override_if_set CDPL_RAMP_ITERS SEMISUPNET.CDPL_RAMP_ITERS
+
 cp "$CONFIG_FILE" "$RUN_DIR/config_input.yaml"
 git status --short --branch > "$RUN_DIR/git_status.txt"
 echo "$COMMIT" > "$RUN_DIR/git_commit.txt"
@@ -84,6 +107,14 @@ chmod +x "$RUN_DIR/launch_command.sh"
   echo "max_iter: $MAX_ITER"
   echo "trainer: $TRAINER"
   echo "cdpl_enabled: $CDPL_ENABLED"
+  [[ -n "${BBOX_THRESHOLD:-}" ]] && echo "bbox_threshold: $BBOX_THRESHOLD"
+  [[ -n "${BURN_UP_STEP:-}" ]] && echo "burn_up_step: $BURN_UP_STEP"
+  [[ -n "${CDPL_TAU_BASE:-}" ]] && echo "cdpl_tau_base: $CDPL_TAU_BASE"
+  [[ -n "${CDPL_ALPHA_TAIL:-}" ]] && echo "cdpl_alpha_tail: $CDPL_ALPHA_TAIL"
+  [[ -n "${CDPL_MIN_CLS_THRESHOLD:-}" ]] && echo "cdpl_min_cls_threshold: $CDPL_MIN_CLS_THRESHOLD"
+  [[ -n "${CDPL_MAX_THRESHOLD_OFFSET:-}" ]] && echo "cdpl_max_threshold_offset: $CDPL_MAX_THRESHOLD_OFFSET"
+  [[ -n "${CDPL_START_ITER:-}" ]] && echo "cdpl_start_iter: $CDPL_START_ITER"
+  [[ -n "${CDPL_RAMP_ITERS:-}" ]] && echo "cdpl_ramp_iters: $CDPL_RAMP_ITERS"
   echo "oct_ss_train_json: $OCT_SS_TRAIN_JSON"
   echo "oct_ss_unlabel_json: $OCT_SS_UNLABEL_JSON"
   echo "oct_ss_test_json: $OCT_SS_TEST_JSON"
@@ -91,6 +122,32 @@ chmod +x "$RUN_DIR/launch_command.sh"
   echo "oct_ss_unlabel_image_root: $OCT_SS_UNLABEL_IMAGE_ROOT"
   echo "oct_ss_image_root: $OCT_SS_IMAGE_ROOT"
 } > "$RUN_DIR/run_metadata.txt"
+
+python - "$RUN_DIR/config_overrides.json" <<'PY'
+import json
+import os
+import sys
+
+keys = [
+    "RUN_NAME",
+    "RUN_MODE",
+    "SEED",
+    "NUM_GPUS",
+    "CUDA_VISIBLE_DEVICES",
+    "MAX_ITER",
+    "BBOX_THRESHOLD",
+    "BURN_UP_STEP",
+    "CDPL_TAU_BASE",
+    "CDPL_ALPHA_TAIL",
+    "CDPL_MIN_CLS_THRESHOLD",
+    "CDPL_MAX_THRESHOLD_OFFSET",
+    "CDPL_START_ITER",
+    "CDPL_RAMP_ITERS",
+]
+payload = {key.lower(): os.environ[key] for key in keys if os.environ.get(key) not in (None, "")}
+with open(sys.argv[1], "w", encoding="utf-8") as handle:
+    json.dump(payload, handle, indent=2)
+PY
 
 nvidia-smi > "$RUN_DIR/nvidia_smi_start.txt" 2>&1 || true
 set +e
